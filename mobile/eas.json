@@ -19,11 +19,26 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_USE_DEV_CLIENT": "0"
       }
     },
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_USE_DEV_CLIENT": "0"
+      }
+    },
+    "standalone": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_USE_DEV_CLIENT": "0"
       }
     }
   },
