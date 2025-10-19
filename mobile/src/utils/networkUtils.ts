@@ -25,11 +25,12 @@ export const getApiBaseUrl = (): string => {
       }
     }
     
-    // Fallback to your local IP
+    // Fallback to your local IP for development
     return 'http://172.19.121.18:3000/api';
   }
   
-  return 'http://140.245.50.73:3000/api';
+  // Production: Use HTTPS domain
+  return 'https://safebubble.duckdns.org/api';
 };
 
 /**
