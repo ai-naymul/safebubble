@@ -29,7 +29,7 @@ export class BackgroundJobService {
 
   /**
    * Start the background job scheduler
-   * Runs every 30 minutes to pre-fetch trending tokens
+   * Runs every 1 hour to pre-fetch trending tokens
    */
   startScheduler(): void {
     if (this.intervalId) {
@@ -40,12 +40,12 @@ export class BackgroundJobService {
     // Run immediately on start
     this.runBackgroundJob();
 
-    // Then run every 30 minutes
+    // Then run every 1 hour
     this.intervalId = setInterval(() => {
       this.runBackgroundJob();
-    }, 30 * 60 * 1000); // 30 minutes
+    }, 60 * 60 * 1000); // 1 hour
 
-    logger.info('🚀 Background job scheduler started (runs every 30 minutes)');
+    logger.info('🚀 Background job scheduler started (runs every 1 hour)');
   }
 
   /**
@@ -86,7 +86,7 @@ export class BackgroundJobService {
           await this.cacheService.setCompressed(
             CacheService.trendingKey(),
             lightweightTokens,
-            300 // 5 minutes (shorter TTL to reduce memory pressure)
+            3600 // 1 hour (reduced API usage)
           );
         } catch (error) {
           logger.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');

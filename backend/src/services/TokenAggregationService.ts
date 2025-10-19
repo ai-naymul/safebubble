@@ -426,8 +426,8 @@ export class TokenAggregationService {
       // Create lightweight cache objects (90% size reduction)
       const lightweightTokens = filteredTokens.map(CacheService.createLightweightToken);
       
-      // Cache with compression and shorter TTL
-      await this.cache.setCompressed(CacheService.trendingKey(), lightweightTokens, 120); // 2 minutes
+      // Cache with compression and 1 hour TTL
+      await this.cache.setCompressed(CacheService.trendingKey(), lightweightTokens, 3600); // 1 hour
   
       console.log(`✅ Returning ${filteredTokens.length} trending tokens`);
       return filteredTokens;

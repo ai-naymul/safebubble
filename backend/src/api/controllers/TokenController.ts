@@ -163,7 +163,7 @@ export class TokenController {
       // Create lightweight cache objects and cache with compression
       const lightweightTokens = tokens.map(CacheService.createLightweightToken);
       try {
-        await this.cacheService.setCompressed(cacheKey, lightweightTokens, 300); // 5 minutes
+        await this.cacheService.setCompressed(cacheKey, lightweightTokens, 3600); // 1 hour
       } catch (error) {
         console.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');
       }

@@ -20,7 +20,7 @@ const envSchema = z.object({
   
   // Redis
   REDIS_URL: z.string().default('redis://localhost:6379'),
-  CACHE_TTL_SECONDS: z.string().default('30'),
+  CACHE_TTL_SECONDS: z.string().default('3600'),
   
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('60000'),
