@@ -78,15 +78,15 @@ export class BackgroundJobService {
       const trendingTokens = await this.aggregationService.getTrendingTokens(100);
       
       if (trendingTokens && trendingTokens.length > 0) {
-        // Create lightweight cache objects (90% size reduction)
-        const lightweightTokens = trendingTokens.map(CacheService.createLightweightToken);
+        // Serialize tokens before caching to handle BigInt values
+        const serializedTokens = trendingTokens.map(token => this.serializeToken(token));
 
-        // Cache the lightweight results with compression
+        // Cache the serialized results for 1 hour
         try {
-          await this.cacheService.setCompressed(
+          await this.cacheService.set(
             CacheService.trendingKey(),
-            lightweightTokens,
-            3600 // 1 hour (reduced API usage)
+            serializedTokens,
+            3600 // 1 hour
           );
         } catch (error) {
           logger.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');

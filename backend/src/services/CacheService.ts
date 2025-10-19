@@ -131,38 +131,4 @@ export class CacheService {
     return 'tokens:trending';
   }
 
-  /**
-   * Create lightweight token cache object (only essential data)
-   */
-  static createLightweightToken(token: any): any {
-    return {
-      mint: token.mint,
-      symbol: token.symbol,
-      name: token.name,
-      price: token.price,
-      priceChange24h: token.priceChange24h,
-      marketCap: token.marketCap,
-      volume24h: token.volume24h,
-      holderCount: token.holderCount,
-      totalLiquidity: token.totalLiquidity,
-      riskScore: {
-        totalScore: token.riskScore?.totalScore || 0,
-        riskLevel: token.riskScore?.riskLevel || 'UNKNOWN',
-        confidence: token.riskScore?.confidence || 0
-      },
-      gtScore: token.gtScore || 0,
-      isHoneypot: token.isHoneypot || 'unknown',
-      logoUri: token.logoUri,
-      createdAt: token.createdAt,
-      lastUpdated: new Date().toISOString()
-    };
-  }
-
-  /**
-   * Restore full token from lightweight cache object
-   */
-  static restoreTokenFromCache(lightweightToken: any): any {
-    // Return the lightweight token as-is since we only cache essential data
-    return lightweightToken;
-  }
 }
