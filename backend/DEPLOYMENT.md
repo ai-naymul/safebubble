@@ -47,7 +47,7 @@ GET https://your-backend-url.com/api/health
 
 ### Trending Tokens
 ```
-GET https://your-backend-url.com/api/tokens/trending?limit=20
+GET https://your-backend-url.com/api/tokens/trending?limit=100
 ```
 
 ### Token Summary

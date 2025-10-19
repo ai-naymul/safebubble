@@ -397,7 +397,7 @@ export class CoinGeckoTerminalService {
    * Note: CoinGecko doesn't have a direct "trending" endpoint
    * Instead, we'll use recently updated tokens or fetch specific tokens
    */
-  async getTrendingTokens(limit: number = 50): Promise<any[]> {
+  async getTrendingTokens(limit: number = 100): Promise<any[]> {
     try {
       // Use "recently updated tokens" as proxy for trending
       const response = await this.client.get(
@@ -432,11 +432,11 @@ export class CoinGeckoTerminalService {
  * Returns 20 pools per page, can fetch multiple pages
  */
   async getTrendingPools(
-    limit: number = 50,
+    limit: number = 100,
     duration: '5m' | '1h' | '6h' | '24h' = '24h'
   ): Promise<any[]> {
     try {
-      const pages = Math.ceil(limit / 20);
+      const pages = Math.ceil(limit / 50);
       const allPools: any[] = [];
 
       const pagePromises = Array.from({ length: pages }, (_, i) =>

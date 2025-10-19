@@ -75,7 +75,7 @@ export class BackgroundJobService {
       logger.info('🔄 Starting background job: Pre-fetching trending tokens...');
 
       // Pre-fetch trending tokens with full data
-      const trendingTokens = await this.aggregationService.getTrendingTokens(20);
+      const trendingTokens = await this.aggregationService.getTrendingTokens(100);
       
       if (trendingTokens && trendingTokens.length > 0) {
         // Serialize tokens before caching to handle BigInt values

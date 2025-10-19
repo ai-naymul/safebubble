@@ -389,7 +389,7 @@ export class TokenAggregationService {
   /**
    * ✅ FIXED: Get trending tokens with full pool details
    */
-  async getTrendingTokens(limit: number = 20): Promise<Token[]> {
+  async getTrendingTokens(limit: number = 100): Promise<Token[]> {
     try {
       const cached = await this.cache.get<Token[]>(
         CacheService.trendingKey()

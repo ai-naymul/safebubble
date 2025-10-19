@@ -96,14 +96,14 @@ export class BirdeyeService {
   /**
    * Get trending tokens
    */
-  async getTrendingTokens(limit = 20): Promise<any[]> {
+  async getTrendingTokens(limit = 100): Promise<any[]> {
     try {
       const response = await this.client.get('/defi/token_trending', {
         params: {
           sort_by: 'rank',
           sort_type: 'asc',
           offset: 0,
-          limit: Math.min(limit, 20)
+          limit: Math.min(limit, 100)
         }
       });
   

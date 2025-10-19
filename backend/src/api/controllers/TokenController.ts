@@ -119,7 +119,7 @@ export class TokenController {
    */
   getTrendingTokens = async (req: Request, res: Response): Promise<void> => {
     try {
-      const limit = parseInt(req.query.limit as string) || 20;
+      const limit = parseInt(req.query.limit as string) || 100;
 
       console.log(`📈 Fetching ${limit} trending tokens...`);
 
@@ -183,7 +183,7 @@ export class TokenController {
 
   /**
    * POST /api/tokens/batch
-   * Get multiple token summaries (up to 50 tokens)
+   * Get multiple token summaries (up to 100 tokens)
    */
   getTokensBatch = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -199,8 +199,8 @@ export class TokenController {
 
       console.log(`📦 Fetching batch of ${mints.length} tokens...`);
 
-      // Limit to 50 (CoinGecko batch limit)
-      const limitedMints = mints.slice(0, 50);
+      // Limit to 100 (CoinGecko batch limit)
+      const limitedMints = mints.slice(0, 100);
 
       // Use aggregation service for batch processing
       const tokens = await this.aggregationService.getMultipleTokens(limitedMints);
