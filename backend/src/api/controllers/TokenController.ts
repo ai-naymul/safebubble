@@ -125,11 +125,13 @@ export class TokenController {
 
       // Check cache first (this should be populated by background jobs)
       const cacheKey = CacheService.trendingKey();
-      const cached = await this.cacheService.get<Token[]>(cacheKey);
+      const cached = await this.cacheService.get<any[]>(cacheKey);
 
       if (cached && cached.length > 0) {
         console.log(`✅ Cache hit for trending tokens (${cached.length} tokens)`);
-        const serialized = cached.slice(0, limit).map(serializeToken);
+        // Restore from lightweight cache
+        const restoredTokens = cached.slice(0, limit).map(CacheService.restoreTokenFromCache);
+        const serialized = restoredTokens.map(serializeToken);
         res.json({ 
           success: true, 
           data: serialized, 
@@ -158,9 +160,13 @@ export class TokenController {
         riskScore: tokens[0]?.riskScore?.totalScore
       });
 
-      // Serialize and cache the fresh data for future requests
-      const serializedForCache = tokens.map(serializeToken);
-      await this.cacheService.set(cacheKey, serializedForCache, 2 * 60 * 60); // 2 hours
+      // Create lightweight cache objects and cache with compression
+      const lightweightTokens = tokens.map(CacheService.createLightweightToken);
+      try {
+        await this.cacheService.setCompressed(cacheKey, lightweightTokens, 300); // 5 minutes
+      } catch (error) {
+        console.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');
+      }
 
       // Serialize and return
       const serialized = tokens.map(serializeToken);

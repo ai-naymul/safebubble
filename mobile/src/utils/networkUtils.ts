@@ -29,7 +29,7 @@ export const getApiBaseUrl = (): string => {
     return 'http://172.19.121.18:3000/api';
   }
   
-  return 'https://your-api-domain.com/api';
+  return 'https://safebubble.onrender.com/api';
 };
 
 /**

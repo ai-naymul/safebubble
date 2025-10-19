@@ -205,3 +205,4 @@ project.xcworkspace/
 /build
 /captures
 .externalNativeBuild
+.vercel

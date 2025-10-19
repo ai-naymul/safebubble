@@ -391,12 +391,14 @@ export class TokenAggregationService {
    */
   async getTrendingTokens(limit: number = 100): Promise<Token[]> {
     try {
-      const cached = await this.cache.get<Token[]>(
+      const cached = await this.cache.get<any[]>(
         CacheService.trendingKey()
       );
       if (cached) {
-        console.log(`✅ Using cached trending tokens`);
-        return cached.slice(0, limit);
+        console.log(`✅ Using cached trending tokens (${cached.length} tokens)`);
+        // Restore from lightweight cache
+        const restoredTokens = cached.slice(0, limit).map(CacheService.restoreTokenFromCache);
+        return restoredTokens;
       }
   
       console.log(`🔥 Fetching ${limit} trending tokens from pools...`);
@@ -421,7 +423,11 @@ export class TokenAggregationService {
         token.mint !== 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
       );
       
-      await this.cache.set(CacheService.trendingKey(), filteredTokens, 300);
+      // Create lightweight cache objects (90% size reduction)
+      const lightweightTokens = filteredTokens.map(CacheService.createLightweightToken);
+      
+      // Cache with compression and shorter TTL
+      await this.cache.setCompressed(CacheService.trendingKey(), lightweightTokens, 120); // 2 minutes
   
       console.log(`✅ Returning ${filteredTokens.length} trending tokens`);
       return filteredTokens;
