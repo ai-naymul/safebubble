@@ -1,415 +1,467 @@
-# 🫧 SafeBubble - Solana Token Risk Scanner
+# SafeBubble - Solana Token Risk Scanner
 
-**Winner of [Hackathon Name] - Best DeFi Security Tool**
+**Mobile-first risk intelligence for Solana traders**
 
-SafeBubble is a comprehensive Solana token risk analysis platform that helps users make informed trading decisions by aggregating data from multiple sources and providing real-time risk assessments. Built with Mobile Wallet Adapter integration and Jupiter swaps for a seamless mobile-first experience.
+SafeBubble is a native mobile application that compresses 7-12 minutes of manual token verification into a 3-second visual scan. Built for the Solana Cypherpunk Hackathon.
 
-![SafeBubble Demo](assets/logo/cover.jpeg)
+**Live Links:**
+- Web Preview: https://safebubble.vercel.app
+- Android APK: https://expo.dev/accounts/tailung_nym/projects/safebubble/builds/aaf67ea7-6afc-4420-9382-ba43b22cc2d3
+- API Endpoint: https://safebubble.duckdns.org/api
+- Pitch Video: https://www.loom.com/share/da97e504d2464b18ace0380ac15e1d1b?sid=9d217d42-fcd0-42fa-9298-a44f6d8b87de
+- Technical Demo: https://www.loom.com/share/dd6460a948314c8b87d2d5be4123cfa4?sid=2857af1c-da95-419b-bfbc-291b76f2bfff
 
-## 🎯 Problem Statement
+---
 
-The Solana ecosystem is plagued with scam tokens, honeypots, and rugpulls. Traders lose millions due to:
-- **Honeypot tokens** that prevent selling
-- **Concentrated holdings** (team dumps)
-- **Mint/Freeze authorities** (dev control)
-- **Low liquidity** traps
-- **Wash trading** and price manipulation
+## The Problem
 
-SafeBubble solves this by providing **real-time, comprehensive risk analysis** before you trade.
+In Q1 2025, Solana traders lost $6 billion to rug pulls. On Pump.fun, 98.6% of tokens launched in 2024 were scams. On Raydium, 93% of pools showed rug pull patterns. (Source: Solidus Labs, CoinLaw 2025)
 
-## ✨ Key Features
+**Why this happens:** Verifying if a token is safe requires three manual checks on mobile:
+1. Block explorer diving to check mint/freeze authority (2-3 minutes)
+2. Exporting holder data to calculate concentration (3-5 minutes)
+3. Cross-referencing multiple DEXs to verify liquidity (2-4 minutes)
 
-### 🔍 Multi-Source Risk Analysis
-- **CoinGecko Terminal** - Primary data source (pools, transactions, holders)
-- **Helius RPC** - On-chain verification (supply, authorities)
-- **Birdeye** - Fallback market data
-- Aggregated **150-point risk score** with 9 risk factors
+**Total: 7-12 minutes per token.** On mobile, traders skip this and either lose money or miss trades.
 
-### 🎯 Enhanced Risk Detection
-1. **Honeypot Detection** - Analyzes transaction patterns (buy/sell ratio, unique sellers)
-2. **Authority Risk** - Checks for active mint/freeze authorities
-3. **Concentration Risk** - Monitors top holder percentages
-4. **Liquidity Risk** - Detects wash trading via volume-to-liquidity ratio
-5. **Market Risk** - Identifies bot trading patterns
-6. **Age Risk** - Flags new tokens
-7. **GT Score Risk** - Leverages CoinGecko Trust Score
-8. **Trading Pattern Risk** - Analyzes recent trades for manipulation
-9. **Volatility Risk** - OHLCV data analysis for price stability
+---
 
-### 📱 Mobile-First Experience
-- **Interactive Bubble Chart** - Visual risk mapping with smooth animations
-- **Mobile Wallet Adapter** - Native Solana wallet integration
-- **Jupiter Swap Integration** - Instant token swaps with route visualization
-- **Raydium Pool Detection** - Shows when routes include Raydium
-- **Haptic Feedback** - Tactile interactions throughout the app
-- **Seeker Device Support** - Exclusive perks for Solana Seeker users
+## The Solution
 
-### 🛡️ Safety Guardrails
-- **Swap blocking** for DANGER-level tokens
-- **Price impact warnings** for high-slippage trades
-- **Real-time confidence scoring** (based on data completeness)
-- **Detailed risk breakdowns** with actionable insights
+SafeBubble compresses that 7-12 minute process into a 3-second visual scan.
 
-## 🏗️ Architecture
+**How it works:**
+- Aggregates on-chain data from CoinGecko Terminal, Helius RPC, Raydium, and Birdeye
+- Scores tokens on 9 factors (authority status, holder concentration, liquidity depth, market data, token age, GT score, trading patterns, honeypot detection, volatility)
+- Authority carries the highest weight based on Solidus Labs research: every rug pull fails at least one of these three checks
+
+**Visual system:**
+- Lower risk = Larger bubble
+- Color encodes verdict: Green (SAFE), Amber (MEDIUM), Red (DANGER)
+- Tap any bubble to see complete risk breakdown with reasons
+
+This is a complete mobile product, not a swap widget or wallet plugin.
+
+---
+
+## For Judges - Quick Test
+
+### Try the App (5 minutes)
+
+**Web Preview (fastest):**
+Visit https://safebubble.vercel.app
+
+**Android Build (full features):**
+1. Install from https://expo.dev/accounts/tailung_nym/projects/safebubble/builds/aaf67ea7-6afc-4420-9382-ba43b22cc2d3
+2. Browse tokens by risk level (Safe/Medium/High Risk)
+3. Tap any bubble to see risk breakdown
+4. Observe: DANGER tokens show clear warnings with blocked actions
+
+**What to look for:**
+- Three-tier risk system (Safe, Medium, High Risk)
+- Authority, Holder Concentration, and Liquidity checks visible on every token
+- Complete user flow: Scan → Tap → See risk breakdown → Decide
+- Real data from live Solana tokens
+
+---
+
+## Architecture
 
 ```
-safebubble/
-├── backend/                 # Node.js/Express API
-│   ├── src/
-│   │   ├── services/       # Data aggregation services
-│   │   │   ├── CoinGeckoTerminalService.ts  # Primary API
-│   │   │   ├── HeliusService.ts             # RPC data
-│   │   │   ├── BirdeyeService.ts            # Fallback
-│   │   │   ├── JupiterService.ts            # Swap quotes
-│   │   │   ├── RiskCalculatorService.ts     # Risk scoring
-│   │   │   ├── TokenAggregationService.ts   # Data orchestration
-│   │   │   ├── CacheService.ts              # Redis caching
-│   │   │   └── BackgroundJobService.ts      # Trending tokens scheduler
-│   │   ├── api/
-│   │   │   ├── controllers/  # Request handlers
-│   │   │   ├── routes/       # API routes
-│   │   │   └── middleware/   # Rate limiting, error handling
-│   │   └── domain/
-│   │       └── models/       # TypeScript interfaces
-│   └── tests/               # Unit & integration tests
-│
-├── mobile/                  # React Native/Expo app
-│   ├── src/
-│   │   ├── screens/
-│   │   │   ├── HomeScreen/           # Bubble chart & filters
-│   │   │   ├── TokenDetailScreen/    # Risk breakdown
-│   │   │   └── SwapScreen/           # Jupiter integration
-│   │   ├── components/
-│   │   │   ├── atoms/        # Basic UI components
-│   │   │   ├── molecules/    # Composite components
-│   │   │   │   ├── RiskCard.tsx      # Enhanced risk display
-│   │   │   │   ├── RouteInfoCard.tsx # Swap route details
-│   │   │   │   └── SeekerBanner.tsx  # Seeker perks
-│   │   │   └── organisms/    # Complex components
-│   │   │       ├── BubbleChart/      # Interactive visualization
-│   │   │       └── RiskBreakdown.tsx # Detailed risk factors
-│   │   ├── services/
-│   │   │   ├── ApiService.ts         # Backend API client
-│   │   │   ├── JupiterService.ts     # Jupiter integration
-│   │   │   └── MobileWalletService.ts # MWA integration
-│   │   └── utils/
-│   │       ├── formatters.ts         # Display helpers
-│   │       └── seekerDetection.ts    # Seeker device check
-│   └── app.json             # Expo config
-│
-└── shared/                  # Shared TypeScript types
-    └── types/
+Mobile App (React Native/Expo)
+        ↓
+   Backend API (Express)
+        ↓
+   ┌────┴─────┬──────────┬─────────┬──────────┐
+   ↓          ↓          ↓         ↓          ↓
+CoinGecko   Helius    Raydium   Birdeye   Jupiter
+Terminal     RPC      Pools    (backup)   (swaps)
+   ↓          ↓          ↓         ↓          ↓
+   └──────────┴──────────┴─────────┴──────────┘
+                      ↓
+          Token Aggregation Service
+                      ↓
+          Risk Scoring Engine (9 factors)
+                      ↓
+             Redis Cache Service
+                      ↓
+           SAFE / MEDIUM / DANGER
 ```
 
-## 🚀 Getting Started
+### Key Components
 
-### For Judges - Quick Test (Android)
+**Backend (Node.js/Express):**
+- TokenAggregationService: Orchestrates data from multiple APIs
+- RiskCalculatorService: 9-factor scoring model
+- CacheService: Redis memoization for sub-200ms responses
+- BackgroundJobService: Hourly trending token prefetch
+- API routes: /tokens/:mint/summary, /tokens/trending, /tokens/batch
 
-**Try SafeBubble Now:**
-1. **Install**: [EAS Internal Distribution Link - Coming Soon]
-2. **Wallet**: Install Phantom or Solflare from Play Store
-3. **SOL**: Add some SOL to your wallet for transaction fees (0.01-0.1 SOL)
-4. **Test**: Connect wallet → Browse bubbles → Try swaps
+**Mobile (React Native/Expo):**
+- BubbleChart: Interactive risk visualization with touch gestures
+- RiskCard: Detailed breakdown showing all 9 factors
+- Three-tier navigation: Safe, Medium Risk, High Risk sections
+- Native mobile app (not a web wrapper)
 
-**Key Features to Test:**
-- ✅ **Risk Assessment**: Tap bubbles to see detailed risk breakdown
-- ✅ **Danger Blocking**: DANGER tokens block swaps with clear reasons
-- ✅ **Safe Swaps**: SAFE tokens allow Jupiter swaps with MWA signing
-- ✅ **Raydium Detection**: Look for "Route includes Raydium" chips
-- ✅ **Seeker Perks**: Check for Seeker device benefits
+**Data Sources:**
+- Primary: CoinGecko Terminal (holders, authorities, pools, transactions, OHLCV, GT score)
+- Supplemental: Helius (decimals, supply), Raydium (pool data), Birdeye (price, fallback), Jupiter (swaps)
 
-**Backend API**: `https://your-backend-url.com/api` (Status: Running)
+---
 
-### For Developers
+## Risk Scoring Model
 
-### Prerequisites
-- **Node.js** 18+ and npm
-- **Redis** (for caching)
-- **Expo CLI** / **EAS CLI** (for mobile)
-- **Android Device** or emulator (for MWA testing)
+### Nine Factors (150-point scale)
 
-### Backend Setup
+1. **Honeypot Detection (30 points):** Analyzes buy/sell ratio, unique sellers, volume patterns
+2. **Authority Status (25 points):** Checks if mint/freeze control is renounced (highest weight)
+3. **Holder Concentration (20 points):** Top 10 wallet ownership percentage
+4. **Liquidity Depth (15 points):** TVL, pool presence, wash trading detection (volume/liquidity ratio)
+5. **Market Data (15 points):** 24h volume, trader count, bot detection
+6. **Token Age (10 points):** Creation date, maturity assessment
+7. **Gecko Terminal Score (10 points):** Platform trust rating
+8. **Trading Patterns (15 points):** Recent transaction analysis for manipulation
+9. **Volatility (10 points):** OHLCV analysis for price stability
 
-1. **Install dependencies:**
+**Output:** SAFE (0-40 points), MEDIUM (41-80 points), DANGER (81-150 points)
+
+**Confidence Score:** Based on data completeness from all sources
+
+---
+
+## What's Live Today
+
+**Backend API:**
+- Deployed at https://safebubble.duckdns.org/api
+- 9-factor risk engine running
+- Redis caching active (300s TTL)
+- Rate limiting and error handling implemented
+- Endpoints: /tokens/:mint/summary, /tokens/trending, /tokens/batch
+
+**Mobile App:**
+- Web preview: safebubble.vercel.app
+- Android build: Installable via EAS
+- Native mobile app (React Native/Expo)
+- Three risk tiers with bubble visualization
+- Complete risk breakdown on tap
+- Real-time data from live tokens
+
+**What Users Can Do Today:**
+- Scan any Solana token for risk
+- See authority, holder concentration, and liquidity checks
+- View trending tokens by risk level
+- Get complete risk breakdown with reasons
+- Make informed trading decisions
+
+This is not a prototype. The product is functional and users can scan tokens today.
+
+---
+
+## Technical Stack
+
+**Frontend:**
+- React Native 0.74
+- Expo SDK 54
+- TypeScript
+- React Navigation
+- Gesture Handler for interactions
+
+**Backend:**
+- Node.js 18+
+- Express.js
+- TypeScript
+- Redis for caching
+- Helmet, CORS, rate limiting
+
+**APIs & Services:**
+- CoinGecko Terminal API (primary data)
+- Helius RPC (Solana on-chain data)
+- Raydium API (pool information)
+- Birdeye API (fallback pricing)
+- Jupiter API (swap quotes)
+
+**Infrastructure:**
+- Backend: Oracle Cloud Instance
+- Redis: Inside the cloud instance
+- Mobile: Expo Application Services (EAS)
+
+---
+
+## Setup Instructions
+
+### Backend
+
+1. Install dependencies:
 ```bash
 cd backend
 npm install
 ```
 
-2. **Configure environment variables:**
-Create `.env` file:
-```env
+2. Configure environment:
+```bash
+# .env file
 PORT=3000
 REDIS_URL=redis://localhost:6379
-
-# API Keys
-COINGECKO_API_KEY=your_api_key
-BIRDEYE_API_KEY=your_api_key
-HELIUS_API_KEY=your_api_key
-
-# Cache
+COINGECKO_API_KEY=your_key
+HELIUS_API_KEY=your_key
+BIRDEYE_API_KEY=your_key
 CACHE_TTL_SECONDS=300
 ```
 
-3. **Start Redis:**
+3. Start Redis:
 ```bash
 redis-server
 ```
 
-4. **Run backend:**
+4. Run backend:
 ```bash
-npm run dev  # Development
-npm start    # Production
+npm run dev
 ```
 
-Backend runs on `http://localhost:3000`
+### Mobile
 
-### Mobile Setup
-
-1. **Install dependencies:**
+1. Install dependencies:
 ```bash
 cd mobile
 npm install
 ```
 
-2. **Update API endpoint:**
-Edit `mobile/src/config/constants.ts`:
+2. Update API endpoint in `src/config/constants.ts`:
 ```typescript
-export const API_BASE_URL = 'http://YOUR_LOCAL_IP:3000/api';
-// Or your deployed backend URL
+export const API_BASE_URL = 'http://YOUR_IP:3000/api';
 ```
 
-3. **Run on Android** (for MWA support):
-
-**Option A - Development Build (Recommended):**
+3. Run on Android:
 ```bash
-# Create development build
-npx expo prebuild --platform android
 npx expo run:android
+```
 
-# Or with EAS
+Or create development build:
+```bash
 eas build --profile development --platform android
 ```
 
-**Option B - Expo Go (limited MWA support):**
-```bash
-npx expo start
-```
+---
 
-## 📱 Mobile Wallet Adapter Integration
+## API Documentation
 
-SafeBubble uses **native Mobile Wallet Adapter** for secure wallet operations:
+### GET /api/tokens/:mint/summary
 
-### Features Implemented
-✅ **Connect Wallet** - `connectMWA()` with authorization flow  
-✅ **Sign & Send Transactions** - `signAndSendMWA()` for Jupiter swaps  
-✅ **Session Management** - Reauthorization with cached auth tokens  
-✅ **Disconnect** - Clean session termination  
+Returns complete risk analysis for a token.
 
-### Testing MWA
-1. **Install a compatible wallet** (Phantom, Solflare, Backpack)
-2. **Use a real Android device** or emulator
-3. **Optional**: Use Solana Mobile's **Mock Wallet** for testing
-
-### Code Example
-```typescript
-// Connect wallet
-const { address, authToken } = await connectMWA('solana:mainnet');
-
-// Build Jupiter swap
-const serializedTx = await buildJupiterSwap(quote, address);
-
-// Sign and send
-const signature = await signAndSendMWA(serializedTx, authToken);
-```
-
-## 🪐 Jupiter Integration
-
-### Swap Flow
-1. **Get Quote** - `GET /api/swap/quote` → Jupiter v6 API
-2. **Show Route** - Display DEXs (including Raydium detection)
-3. **Price Impact Warning** - Alert on high slippage
-4. **Build Transaction** - `POST /api/swap/transaction`
-5. **Sign via MWA** - Native wallet bottom sheet
-6. **Confirm** - Transaction signature & Solscan link
-
-### Raydium Detection
-```typescript
-const includesRaydium = quote.routePlan?.some(hop => 
-  hop.swapInfo.label.toLowerCase().includes('raydium')
-);
-```
-
-## 🔐 Risk Calculation Logic
-
-### Honeypot Detection (30 points)
-```typescript
-// Enhanced detection using transaction data
-const sellRatio = (sells / buys) || 0;
-const uniqueSellersRatio = (uniqueSellers / uniqueBuyers) || 0;
-const volumeRatio = (sellVolume / buyVolume) || 0;
-
-if (sellRatio < 0.1 || uniqueSellersRatio < 0.2 || volumeRatio < 0.1) {
-  // Suspected honeypot!
+**Response:**
+```json
+{
+  "mint": "string",
+  "symbol": "string",
+  "name": "string",
+  "risk": {
+    "score": 45,
+    "level": "MEDIUM",
+    "factors": {
+      "honeypot": { "score": 15, "signals": [...] },
+      "authority": { "score": 10, "signals": [...] },
+      "concentration": { "score": 5, "signals": [...] },
+      "liquidity": { "score": 8, "signals": [...] },
+      // ... other factors
+    },
+    "verdict": "MEDIUM",
+    "confidence": 85
+  },
+  "market": {
+    "price": 0.0045,
+    "marketCap": 450000,
+    "volume24h": 12000,
+    "liquidity": 15000
+  },
+  "holders": {
+    "total": 1200,
+    "top10Percentage": 45
+  }
 }
 ```
 
-### Liquidity Risk (15 points)
-- **Low liquidity**: < $10K = high risk
-- **Wash trading**: Volume/Liquidity ratio > 10 = suspicious
-- **Locked liquidity**: Reduces risk score
+### GET /api/tokens/trending
 
-### Market Risk (10 points)
-- **Low volume**: < $1K/24h = risky
-- **Bot trading**: Few traders + high volume = manipulation
-- **Pump detection**: Price surge > 100% in 1h = pump
+Returns cached list of trending tokens (updated hourly).
 
-## 📊 API Endpoints
+### POST /api/tokens/batch
 
-### Tokens
-```
-GET  /api/tokens/:mint/summary       # Full token analysis
-GET  /api/tokens/trending            # Trending tokens (cached)
-POST /api/tokens/batch               # Multiple tokens (up to 50)
-```
+Batch request for up to 50 tokens.
 
-### Swaps
-```
-GET  /api/swap/quote                 # Jupiter quote
-POST /api/swap/transaction           # Build swap tx
-```
+---
 
-### Background Jobs
-```
-GET  /api/background/status          # Job scheduler status
-POST /api/background/trigger         # Manual trigger
-```
+## Post-Hackathon Roadmap
 
-## 🎨 UI/UX Highlights
+**Month 1 (Next 30 days):**
+- Mobile Wallet Adapter integration for bottom-sheet signing
+- Push alerts for Pro users when watchlist tokens cross risk thresholds
+- First 1,000 user milestone
 
-### Bubble Chart
-- **Size** = Market Cap
-- **Color** = Risk Level (Green → Yellow → Red)
-- **Interactive** = Tap to see details
-- **Animations** = Spring physics on press
-- **Text Overflow Fix** = Smart truncation based on bubble size
+**Month 2 (Next 60 days):**
+- Mint App NFT and Release NFT
+- Submit to Solana dApp Store via publisher portal
+- First B2B API pilot with wallet integration
 
-### Risk Card
-- **Guardrails** - Disables swap for DANGER tokens
-- **Visual Checks** - Authority, Liquidity, Concentration
-- **Gradient Header** - Color-coded by risk level
-- **Honeypot Alert** - Prominent warning banner
+**Month 3:**
+- Complete B2B integration with 100K+ user wallet
+- Pro tier revenue launch
+- Expand to 10K free users
 
-### Seeker Integration
-- **Device Detection** - Checks `Platform.constants.Model`
-- **Exclusive Badge** - Shows "Seeker Pro Active"
-- **UI-only (Hackathon)** - Full SIWS + SGT verification planned for production
+**Month 6 Target:**
+- 10,000 free users
+- 500 Pro subscribers at $9/month = $4.5K MRR
+- 3 B2B API clients at $1K/month average = $3K MRR
+- Total: $7.5K MRR
 
-## 🎯 Solana Mobile Specific Features
+---
 
-### ✅ Implemented
-- [x] **Mobile Wallet Adapter** - Native wallet integration
-- [x] **Android Development Build** - Works on any Android device
-- [x] **Seeker Device Detection** - UI-based perk display
-- [x] **Haptic Feedback** - Enhanced tactile experience
-- [x] **Optimized UI** - Mobile-first design with gestures
+## Business Model
 
-### 🔮 Post-Hackathon Roadmap
-- [ ] **SIWS (Sign-In With Solana)** - Secure authentication
-- [ ] **Seeker Genesis Token Verification** - via Helius DAS API
-- [ ] **Publish to Solana dApp Store** - App NFT → Release NFT workflow
-- [ ] **Apply for Solana Mobile Builder Grant** - Funding for production development
+**Free Tier:**
+- Risk scanning for all tokens
+- Three hard checks visible (Authority, Holders, Liquidity)
+- Complete risk breakdown
+- Trending tokens feed
 
-## 🧪 Testing
+**Pro Tier ($9/month):**
+- Watchlist with push alerts
+- Risk threshold notifications
+- Advanced volatility signals
+- Priority support
+
+**B2B API ($500-2,000/month):**
+- White-label risk engine
+- Custom risk thresholds
+- Wallet and portfolio tracker integration
+- Enterprise analytics
+- Dedicated support
+
+---
+
+## Why This Won't Be Abandoned
+
+**Real Problem:** $6 billion lost to rug pulls in Q1 2025 alone. 98.6% scam rate on Pump.fun means traders need this more than ever.
+
+**Complete Product:** This is not a swap widget or wallet plugin. It's a complete mobile product solving the full user journey: scan → understand → decide.
+
+**Clear Revenue Model:** Freemium with Pro tier and B2B API. Concrete targets: $7.5K MRR by month 6.
+
+**Technical Foundation:** Production-ready backend with caching, error handling, rate limiting. Native mobile app with clear path to dApp Store. Not a hackathon toy.
+
+**Market Validation:** Early feedback from 9+ traders in Solana Discord confirmed: "I don't have time to check authority on my phone, but I'd look at this app before every trade."
+
+---
+
+## Technical Highlights
+
+**Data Aggregation:**
+- Merges data from 4 different APIs
+- Normalizes inconsistent formats
+- Handles missing data gracefully
+- Falls back to secondary sources
+
+**Performance:**
+- Redis caching keeps responses under 200ms
+- Background jobs prefetch trending tokens
+- Batch endpoint handles up to 50 tokens
+- Rate limiting prevents abuse
+
+**Risk Intelligence:**
+- Enhanced honeypot detection using transaction patterns
+- Authority status weighted highest per Solidus Labs research
+- Wash trading detection via volume/liquidity ratio
+- Bot trading detection via trader count analysis
+
+**Mobile UX:**
+- Bubble size = risk level (counterintuitive but effective)
+- Color coding: Green, Amber, Red
+- One-tap access to full breakdown
+- Smooth animations with spring physics
+- Native gestures throughout
+
+---
+
+## Testing
 
 ### Backend Tests
 ```bash
 cd backend
-npm test              # All tests
-npm run test:unit     # Unit tests
-npm run test:integration  # API tests
+npm test
 ```
 
-### Manual Testing Checklist
-- [ ] Connect wallet via MWA
-- [ ] View trending tokens with filters
-- [ ] Tap bubble → see risk breakdown
-- [ ] Try swap on SAFE token → success
-- [ ] Try swap on DANGER token → blocked
-- [ ] Check Raydium route detection
-- [ ] Test on Seeker device (if available)
+## Project Structure
 
-## 📹 Demo Video Guide
-
-### Clip 1: MWA Flow (20-30s)
-1. Open SafeBubble app
-2. Tap on token → "Swap with Jupiter"
-3. Tap "Connect Wallet" → MWA bottom sheet appears
-4. Authenticate with fingerprint/PIN
-5. Shows connected address
-6. Enter amount → Get quote → "Swap"
-7. MWA sign sheet → Fingerprint → Success toast
-8. Shows transaction signature
-
-### Clip 2: Safety Guardrail (20-30s)
-1. Open DANGER token (red bubble)
-2. Shows Risk Card with ⚠️ alerts
-3. Swap button is **disabled** with "Fix risks above"
-4. Shows explicit reasons:
-   - Authority Active
-   - Low Liquidity ($X)
-   - Top 10 > 80%
-5. Switch to SAFE token
-6. Swap enabled → Shows "Includes Raydium" + Price Impact 0.X%
-
-## 🏆 Hackathon Submission Highlights
-
-### Innovation
-- **First-of-its-kind** mobile risk scanner for Solana
-- **Multi-source aggregation** (3 APIs + RPC)
-- **Enhanced honeypot detection** using transaction patterns
-- **Native MWA integration** (not web-based wallet connect)
-
-### Technical Excellence
-- **Production-ready backend** with caching, rate limiting, error handling
-- **Comprehensive testing** (unit + integration)
-- **Type-safe** end-to-end (TypeScript)
-- **Scalable architecture** (batch processing, background jobs)
-
-### User Experience
-- **Intuitive bubble visualization** (see risk at a glance)
-- **One-tap swap** with MWA
-- **Clear safety messaging** (blocks risky trades)
-- **Smooth animations** + haptics
-
-### Solana Mobile Alignment
-- **Mobile Wallet Adapter** - Core integration
-- **Seeker Support** - Device detection + perks
-- **dApp Store Ready** - Clear path to publishing
-- **Jupiter Integration** - Best-in-class liquidity
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
-
-## 🔗 Links
-
-- **Live Demo**: [App Store Link] (Post-hackathon)
-- **API Docs**: [SafeBubble API Docs](docs/API.md)
-- **Architecture**: [System Design](docs/ARCHITECTURE.md)
-- **Deployment**: [Deployment Guide](docs/DEPLOYMENT.md)
-
-## 👥 Team
-
-Built with ❤️ by the SafeBubble team for [Hackathon Name]
+```
+safebubble/
+├── backend/
+│   ├── src/
+│   │   ├── services/
+│   │   │   ├── CoinGeckoTerminalService.ts
+│   │   │   ├── HeliusService.ts
+│   │   │   ├── BirdeyeService.ts
+│   │   │   ├── JupiterService.ts
+│   │   │   ├── RiskCalculatorService.ts
+│   │   │   ├── TokenAggregationService.ts
+│   │   │   ├── CacheService.ts
+│   │   │   └── BackgroundJobService.ts
+│   │   ├── api/
+│   │   │   ├── controllers/
+│   │   │   ├── routes/
+│   │   │   └── middleware/
+│   │   └── domain/
+│   │       └── models/
+│   └── tests/
+│
+├── mobile/
+│   ├── src/
+│   │   ├── screens/
+│   │   │   ├── HomeScreen/
+│   │   │   └── TokenDetailScreen/
+│   │   ├── components/
+│   │   │   ├── BubbleChart/
+│   │   │   ├── RiskCard/
+│   │   │   └── RiskBreakdown/
+│   │   ├── services/
+│   │   │   └── ApiService.ts
+│   │   └── utils/
+│   └── app.json
+│
+└── shared/
+    └── types/
+```
 
 ---
 
-**Note to Judges**: This project demonstrates deep integration with Solana Mobile infrastructure (MWA, Jupiter, Raydium) while solving a critical DeFi problem. The enhanced risk detection using real transaction data goes beyond simple API aggregation to provide genuine value to traders. Post-hackathon, we plan to publish to the Solana dApp Store and apply for the Solana Mobile Builder Grant to bring this to production.
+## Contributing
 
-Made with 🫧 on Solana
+Contributions are welcome. Please open an issue first to discuss proposed changes.
 
+---
+
+## License
+
+MIT License
+
+---
+
+## Acknowledgments
+
+**Data Sources:**
+- CoinGecko Terminal for comprehensive token data
+- Helius for Solana RPC infrastructure
+- Raydium for DEX pool information
+- Birdeye for market data
+- Jupiter for swap aggregation
+
+**Research:**
+- Solidus Labs for rug pull analysis (98.6% scam rate data)
+- CoinLaw for Q1 2025 loss statistics
+
+**Infrastructure:**
+- Solana Mobile for Mobile Wallet Adapter specifications
+- Expo for mobile development framework
+
+---
+
+**Note to Judges:** SafeBubble demonstrates a complete product solving a real problem with measurable impact ($6B lost in Q1 2025). The technical implementation goes beyond simple API aggregation to provide genuine risk intelligence through a 9-factor scoring model. Post-hackathon plans include dApp Store publishing, B2B API licensing, and clear revenue targets. This is not a feature or prototype. it's a complete mobile product with live users scanning tokens today.
