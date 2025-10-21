@@ -8,8 +8,8 @@ SafeBubble is a native mobile application that compresses 7-12 minutes of manual
 - Web Preview: https://safebubble.vercel.app
 - Android APK: https://expo.dev/accounts/tailung_nym/projects/safebubble/builds/aaf67ea7-6afc-4420-9382-ba43b22cc2d3
 - API Endpoint: https://safebubble.duckdns.org/api
-- Pitch Video: [Watch on Loom](https://www.loom.com/share/da97e504d2464b18ace0380ac15e1d1b?sid=9d217d42-fcd0-42fa-9298-a44f6d8b87de)
-- Technical Demo: [Watch on Loom](https://www.loom.com/share/dd6460a948314c8b87d2d5be4123cfa4?sid=2857af1c-da95-419b-bfbc-291b76f2bfff)
+- Pitch Video: https://www.loom.com/share/da97e504d2464b18ace0380ac15e1d1b?sid=9d217d42-fcd0-42fa-9298-a44f6d8b87de
+- Technical Demo: https://www.loom.com/share/dd6460a948314c8b87d2d5be4123cfa4?sid=2857af1c-da95-419b-bfbc-291b76f2bfff
 
 ---
 
