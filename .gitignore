@@ -178,3 +178,4 @@ dump.rdb
 *.p12
 *.jks
 secrets/
+.expo
