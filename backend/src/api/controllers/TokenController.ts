@@ -114,6 +114,36 @@ export class TokenController {
   };
 
   /**
+   * Transform token to lightweight format for trending list
+   * Removes heavy arrays (topHolders, pools) to reduce payload from 24MB to ~100KB
+   * Keeps essential fields for bubble chart display and basic detail view
+   */
+  private lightweightToken(token: any): any {
+    return {
+      mint: token.mint,
+      name: token.name,
+      symbol: token.symbol,
+      decimals: token.decimals,
+      logoUri: token.logoUri,
+      price: token.price,
+      priceChange24h: token.priceChange24h,
+      priceChange6h: token.priceChange6h,
+      priceChange1h: token.priceChange1h,
+      marketCap: token.marketCap,
+      volume24h: token.volume24h,
+      holderCount: token.holderCount,
+      topHoldersPercentage: token.topHoldersPercentage,
+      totalLiquidity: token.totalLiquidity,
+      createdAt: token.createdAt,
+      authorities: token.authorities,
+      riskScore: token.riskScore,
+      // Exclude heavy arrays:
+      // - topHolders (array of holder objects - very large)
+      // - pools (array of pool objects with nested transactions - extremely large)
+    };
+  }
+
+  /**
    * GET /api/tokens/trending
    * Get trending tokens with robust cache handling
    */
@@ -129,7 +159,9 @@ export class TokenController {
 
       if (cached && cached.length > 0) {
         console.log(`✅ Cache hit for trending tokens (${cached.length} tokens)`);
-        const serialized = cached.slice(0, limit).map(serializeToken);
+        // Transform to lightweight format and serialize
+        const lightweight = cached.slice(0, limit).map(t => this.lightweightToken(t));
+        const serialized = lightweight.map(serializeToken);
         res.json({
           success: true,
           data: serialized,
@@ -172,8 +204,10 @@ export class TokenController {
         console.warn('⚠️ Failed to cache trending tokens (Redis unavailable), but serving fresh data:', cacheError);
       }
 
-      // Serialize and return
-      const serialized = tokens.map(serializeToken);
+      // Transform to lightweight format and serialize
+      const lightweight = tokens.map(t => this.lightweightToken(t));
+      const serialized = lightweight.map(serializeToken);
+      console.log(`📦 Payload size reduced: ${JSON.stringify(tokens).length} -> ${JSON.stringify(lightweight).length} bytes`);
       res.json({
         success: true,
         data: serialized,
@@ -191,7 +225,9 @@ export class TokenController {
         const staleCache = await this.cacheService.get<Token[]>(cacheKey);
         if (staleCache && staleCache.length > 0) {
           console.log(`🛟 Serving stale cache due to error (${staleCache.length} tokens)`);
-          const serialized = staleCache.slice(0, parseInt(req.query.limit as string) || 100).map(serializeToken);
+          // Transform to lightweight format and serialize
+          const lightweight = staleCache.slice(0, parseInt(req.query.limit as string) || 100).map(t => this.lightweightToken(t));
+          const serialized = lightweight.map(serializeToken);
           res.json({
             success: true,
             data: serialized,
