@@ -49,16 +49,26 @@ export class CacheService {
   }
 
   /**
-   * Get value from cache
+   * Get value from cache with retry logic
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      if (!this.connected) return null;
+      if (!this.connected) {
+        // Try to reconnect if disconnected
+        try {
+          await this.connect();
+        } catch (reconnectError) {
+          console.warn('Failed to reconnect to Redis:', reconnectError);
+          return null;
+        }
+      }
 
       const value = await this.client.get(key);
       return value ? JSON.parse(value) : null;
     } catch (error) {
-      console.error(`Cache GET error: ${error}`);
+      console.error(`Cache GET error for key ${key}:`, error);
+      // Mark as disconnected on error
+      this.connected = false;
       return null;
     }
   }

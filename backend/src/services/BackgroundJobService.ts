@@ -74,40 +74,55 @@ export class BackgroundJobService {
     try {
       logger.info('🔄 Starting background job: Pre-fetching trending tokens...');
 
+      // Check if we have existing cached data to preserve
+      const cacheKey = CacheService.trendingKey();
+      const existingCache = await this.cacheService.get<any[]>(cacheKey);
+      const hasExistingData = existingCache && existingCache.length > 0;
+
+      if (hasExistingData) {
+        logger.info(`📦 Preserving ${existingCache.length} existing cached tokens during refresh`);
+      }
+
       // Pre-fetch trending tokens with full data
       const trendingTokens = await this.aggregationService.getTrendingTokens(100);
-      
+
       if (trendingTokens && trendingTokens.length > 0) {
         // Serialize tokens before caching to handle BigInt values
         const serializedTokens = trendingTokens.map(token => this.serializeToken(token));
 
-        // Cache the serialized results for 1 hour
+        // Cache the serialized results for 1 hour - this replaces the old cache atomically
         try {
           await this.cacheService.set(
-            CacheService.trendingKey(),
+            cacheKey,
             serializedTokens,
             3600 // 1 hour
           );
+          logger.info(`✅ Cache updated successfully with ${trendingTokens.length} new tokens`);
         } catch (error) {
-          logger.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');
+          logger.error('❌ Failed to update cache, keeping existing data:', error);
+          // Don't throw - existing cache remains intact
         }
 
         const duration = Date.now() - startTime;
         logger.info(`✅ Background job completed successfully!`);
         logger.info(`📊 Cached ${trendingTokens.length} trending tokens`);
         logger.info(`⏱️ Job took ${Math.round(duration / 1000)}s`);
-        
+
         // Log sample token for verification
         if (trendingTokens[0]) {
           const sample = trendingTokens[0];
           logger.info(`📈 Sample token: ${sample.symbol} - Risk: ${sample.riskScore?.totalScore || 'N/A'}`);
         }
       } else {
-        logger.warn('⚠️ Background job: No trending tokens fetched');
+        logger.warn('⚠️ Background job: No trending tokens fetched, keeping existing cache');
+        if (hasExistingData) {
+          logger.info(`📦 Existing cache preserved (${existingCache.length} tokens)`);
+        }
       }
 
     } catch (error) {
       logger.error('❌ Background job failed:', error);
+      logger.info('📦 Existing cache preserved due to job failure');
     } finally {
       this.isRunning = false;
     }

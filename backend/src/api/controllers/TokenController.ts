@@ -115,7 +115,7 @@ export class TokenController {
 
   /**
    * GET /api/tokens/trending
-   * Get trending tokens with risk scores
+   * Get trending tokens with robust cache handling
    */
   getTrendingTokens = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -130,23 +130,29 @@ export class TokenController {
       if (cached && cached.length > 0) {
         console.log(`✅ Cache hit for trending tokens (${cached.length} tokens)`);
         const serialized = cached.slice(0, limit).map(serializeToken);
-        res.json({ 
-          success: true, 
-          data: serialized, 
+        res.json({
+          success: true,
+          data: serialized,
           cached: true,
-          message: 'Data served from cache (background job)'
+          message: 'Data served from cache (background job)',
+          cacheAge: new Date().toISOString()
         });
         return;
       }
 
-      console.log(`🔄 Cache miss, fetching fresh data...`);
+      console.log(`🔄 Cache miss or empty, fetching fresh data...`);
 
-      // Fallback: fetch fresh data if cache is empty
+      // Fallback: fetch fresh data if cache is empty or unavailable
       const tokens = await this.aggregationService.getTrendingTokens(limit);
 
       if (!tokens || tokens.length === 0) {
-        console.log(`⚠️ No trending tokens found`);
-        res.json({ success: true, data: [], cached: false });
+        console.log(`⚠️ No trending tokens available`);
+        res.status(503).json({
+          success: false,
+          error: 'Service temporarily unavailable',
+          message: 'No cached data available and fresh data fetch failed. Please try again later.',
+          cached: false
+        });
         return;
       }
 
@@ -158,24 +164,47 @@ export class TokenController {
         riskScore: tokens[0]?.riskScore?.totalScore
       });
 
-      // Cache the full tokens for 1 hour
+      // Cache the full tokens for 1 hour (but don't fail the request if caching fails)
       try {
         await this.cacheService.set(cacheKey, tokens, 3600); // 1 hour
-      } catch (error) {
-        console.warn('⚠️ Failed to cache trending tokens (Redis unavailable)');
+        console.log(`💾 Fresh data cached successfully`);
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to cache trending tokens (Redis unavailable), but serving fresh data:', cacheError);
       }
 
       // Serialize and return
       const serialized = tokens.map(serializeToken);
-      res.json({ 
-        success: true, 
-        data: serialized, 
+      res.json({
+        success: true,
+        data: serialized,
         cached: false,
-        message: 'Fresh data fetched and cached'
+        message: 'Fresh data fetched (cache was unavailable)',
+        timestamp: new Date().toISOString()
       });
 
     } catch (error) {
       console.error('❌ Error in getTrendingTokens:', error);
+
+      // Last resort: try to serve stale cache if available
+      try {
+        const cacheKey = CacheService.trendingKey();
+        const staleCache = await this.cacheService.get<Token[]>(cacheKey);
+        if (staleCache && staleCache.length > 0) {
+          console.log(`🛟 Serving stale cache due to error (${staleCache.length} tokens)`);
+          const serialized = staleCache.slice(0, parseInt(req.query.limit as string) || 100).map(serializeToken);
+          res.json({
+            success: true,
+            data: serialized,
+            cached: true,
+            message: 'Serving stale cache due to service error',
+            warning: 'Data may be outdated'
+          });
+          return;
+        }
+      } catch (staleError) {
+        console.error('❌ Even stale cache failed:', staleError);
+      }
+
       res.status(500).json({
         success: false,
         error: 'Failed to fetch trending tokens',
