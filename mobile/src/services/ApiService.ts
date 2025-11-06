@@ -1,5 +1,5 @@
 // src/services/ApiService.ts
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/constants';
 import { Token } from '../domain/models/Token';
 
@@ -13,7 +13,7 @@ export class ApiService {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000,
+      timeout: 30000, // Increased from 10s to 30s for better reliability
       headers: {
         'Content-Type': 'application/json',
       },
@@ -30,13 +30,48 @@ export class ApiService {
       }
     );
 
-    // Response interceptor
+    // Response interceptor with retry logic
     this.client.interceptors.response.use(
       (response) => {
+        console.log(`API Response: ${response.status} for ${response.config.method?.toUpperCase()} ${response.config.url}`);
         return response;
       },
-      (error) => {
-        console.error('API Error:', error.response?.data || error.message);
+      async (error: AxiosError) => {
+        const config = error.config;
+        if (!config) {
+          return Promise.reject(error);
+        }
+
+        // Get retry count from config or set default
+        const retryCount = (config as any)._retryCount || 0;
+
+        // Retry up to 2 times for certain errors
+        if (retryCount < 2 && (
+          error.code === 'ECONNABORTED' || // Timeout
+          error.code === 'ENOTFOUND' ||    // DNS/Network issues
+          error.response?.status === 429 || // Rate limiting
+          error.response?.status >= 500     // Server errors
+        )) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = Math.pow(2, retryCount) * 1000;
+
+          console.log(`API Retry ${retryCount + 1}/2 in ${delay}ms for ${config.method?.toUpperCase()} ${config.url}`);
+
+          (config as any)._retryCount = retryCount + 1;
+
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return this.client(config);
+        }
+
+        console.error('API Error:', {
+          url: config.url,
+          method: config.method?.toUpperCase(),
+          status: error.response?.status,
+          message: error.message,
+          code: error.code,
+          retryCount
+        });
+
         return Promise.reject(error);
       }
     );

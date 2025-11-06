@@ -6,30 +6,11 @@
 
 /**
  * Get the current API base URL
- * This will use the dynamically detected IP or fallback to localhost
+ * This will use the production URL for consistency and reliability
  */
 export const getApiBaseUrl = (): string => {
-  if (__DEV__) {
-    // Try to get IP from environment variable first
-    const envIP = process.env.EXPO_PUBLIC_LOCAL_IP;
-    if (envIP && envIP !== 'localhost' && envIP !== '127.0.0.1') {
-      return `http://${envIP}:3000/api`;
-    }
-    
-    // Try to get IP from Metro bundler URL if available
-    const metroUrl = process.env.EXPO_PUBLIC_METRO_URL || '';
-    if (metroUrl) {
-      const match = metroUrl.match(/http:\/\/([^:]+):/);
-      if (match && match[1] !== 'localhost' && match[1] !== '127.0.0.1') {
-        return `http://${match[1]}:3000/api`;
-      }
-    }
-    
-    // Fallback to your local IP for development
-    return 'http://172.19.121.18:3000/api';
-  }
-  
-  // Production: Use HTTPS domain
+  // Always use production URL for now - more reliable than dynamic IP detection
+  // TODO: Add development mode detection for local development
   return 'https://safebubble.duckdns.org/api';
 };
 
@@ -42,11 +23,11 @@ export const getMetroUrl = (): string => {
     if (metroUrl) {
       return metroUrl;
     }
-    
+
     // Fallback
     return 'http://localhost:8081';
   }
-  
+
   return '';
 };
 
@@ -67,5 +48,6 @@ export const getNetworkInfo = () => {
     isDevelopment: isDevelopment(),
     envIP: process.env.EXPO_PUBLIC_LOCAL_IP,
     envMetroUrl: process.env.EXPO_PUBLIC_METRO_URL,
+    currentTime: new Date().toISOString()
   };
 };

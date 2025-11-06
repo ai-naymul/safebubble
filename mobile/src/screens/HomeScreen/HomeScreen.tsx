@@ -16,7 +16,8 @@ import { ErrorView } from '../../components/molecules/ErrorView';
 import { BubbleChart } from '../../components/organisms/BubbleChart/BubbleChart';
 import { FilterBar, FilterType } from '../../components/organisms/FilterBar';
 import { SeekerBanner } from '../../components/molecules/SeekerBanner';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { getNetworkInfo } from '../../utils/networkUtils';
+import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { LoadingBubbleChart } from '../../components/ui/loading-states';
@@ -49,7 +50,14 @@ export const HomeScreen: React.FC = () => {
     refetch,
     isRefetching,
   } = useTrendingTokens(100);
-  console.log('Fetched Tokens:', tokens);
+  console.log('HomeScreen - Trending tokens hook result:', {
+    hasData: !!tokens,
+    tokenCount: tokens?.length || 0,
+    isLoading,
+    hasError: !!error,
+    error: error?.message,
+    isRefetching
+  });
   // Filter tokens based on risk level and deduplicate by mint address
   const filteredTokens = useMemo(() => {
     if (!tokens) return [];
@@ -92,6 +100,15 @@ export const HomeScreen: React.FC = () => {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
+
+  const networkInfo = getNetworkInfo();
+  console.log('Network Info:', networkInfo);
+
+  // Manual refresh function
+  const handleManualRefresh = () => {
+    console.log('Manual refresh triggered');
+    refetch();
+  };
 
   // Handle bubble press
   const handleBubblePress = (token: Token) => {
@@ -176,6 +193,30 @@ export const HomeScreen: React.FC = () => {
             </View>
           </CardContent>
         </Card>
+
+        {/* Debug Info - Only show in development */}
+        {__DEV__ && (
+          <Card style={[styles.statsCard, { marginTop: spacing.sm }]}>
+            <CardContent style={{ padding: spacing.sm }}>
+              <Text variant="caption" color="secondary" style={{ marginBottom: spacing.xs }}>
+                Debug Info (Dev Mode)
+              </Text>
+              <Text variant="small" style={{ marginBottom: spacing.xs }}>
+                API: {networkInfo.apiBaseUrl}
+              </Text>
+              <Text variant="small" style={{ marginBottom: spacing.sm }}>
+                Tokens: {tokens?.length || 0} loaded, {filteredTokens.length} filtered
+              </Text>
+              <Button
+                title="Refresh Data"
+                onPress={handleManualRefresh}
+                disabled={isRefetching}
+                size="sm"
+                variant="outline"
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Bubble Chart */}
         <BubbleChart
